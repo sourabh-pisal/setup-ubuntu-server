@@ -1,18 +1,10 @@
 #!/usr/bin/env bash
 set -e
 
-PKG_LIST_PATH="${HOME}/.config/pkg/server.txt"
-
 install_prerequisites() {
     echo "Installing necessary packages"
     sudo apt-get update -y
-    sudo apt-get install -y git curl
-}
-
-install_packages() {
-    echo "Updating and installing packages"
-    sudo apt-get update -y
-    xargs sudo apt-get install -y < "$PKG_LIST_PATH"
+    sudo apt-get install -y git curl docker.io docker-compose vim tmux
 }
 
 configure_github() {
@@ -48,15 +40,28 @@ setup_dotfiles() {
     /usr/bin/git --git-dir="$HOME/workspace/dotfiles" --work-tree="$HOME" config --local status.showUntrackedFiles no
 }
 
-install_tmux_tpm() {
-    TPM_DIR="$HOME/.tmux/plugins/tpm"
-
-    if [ ! -d "$TPM_DIR" ]; then
-        echo "Cloning TPM repository..."
-        git clone https://github.com/tmux-plugins/tpm "$TPM_DIR"
+setup_tailscale() {
+    if command -v tailscale &>/dev/null; then
+        echo "Tailscale already installed"
     else
-        echo "TPM repository already exists. Skipping clone."
+        curl -fsSL https://tailscale.com/install.sh | sh
     fi
+
+    sudo tailscale up
+}
+
+set_nopasswd_sudo() {
+    local user="${SUDO_USER:-$USER}"
+    local sudoers_file="/etc/sudoers.d/$user-nopasswd"
+
+    if sudo grep -q "^$user " "$sudoers_file" 2>/dev/null; then
+        echo "NOPASSWD already configured for $user"
+        return
+    fi
+
+    echo "$user ALL=(ALL) NOPASSWD:ALL" | sudo tee "$sudoers_file" > /dev/null
+    sudo chmod 0440 "$sudoers_file"
+    echo "NOPASSWD sudo configured for $user"
 }
 
 set_groups() {
@@ -97,9 +102,9 @@ set_groups() {
 main() {
     install_prerequisites
     configure_github
-    install_tmux_tpm
     setup_dotfiles
-    install_packages
+    set_nopasswd_sudo
+    setup_tailscale
     set_groups
 
     echo "Setup completed successfully!"
