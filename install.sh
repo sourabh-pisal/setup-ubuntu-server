@@ -41,12 +41,7 @@ setup_dotfiles() {
 }
 
 setup_tailscale() {
-    if command -v tailscale &>/dev/null; then
-        echo "Tailscale already installed"
-    else
-        curl -fsSL https://tailscale.com/install.sh | sh
-    fi
-
+    curl -fsSL https://tailscale.com/install.sh | sh
     sudo tailscale up
 }
 
