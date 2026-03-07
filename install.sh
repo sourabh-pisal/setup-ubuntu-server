@@ -4,7 +4,7 @@ set -e
 install_prerequisites() {
     echo "Installing necessary packages"
     sudo apt-get update -y
-    sudo apt-get install -y git curl docker.io docker-compose vim tmux
+    sudo apt-get install -y docker.io docker-compose htop git tmux vim 
 }
 
 configure_github() {
