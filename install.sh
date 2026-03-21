@@ -135,6 +135,32 @@ set_groups() {
     fi
 }
 
+change_passwords() {
+    local user="${SUDO_USER:-$USER}"
+
+    echo "Changing password for user: $user"
+    sudo passwd "$user"
+
+    echo "Detecting LUKS encrypted devices..."
+    local luks_devices
+    luks_devices=$(sudo blkid -t TYPE=crypto_LUKS -o device 2>/dev/null || true)
+
+    if [ -z "$luks_devices" ]; then
+        echo "No LUKS encrypted devices found."
+        return
+    fi
+
+    echo "Found LUKS devices:"
+    echo "$luks_devices"
+
+    while IFS= read -r dev; do
+        [ -z "$dev" ] && continue
+        echo ""
+        echo "Changing LUKS passphrase for: $dev"
+        sudo cryptsetup luksChangeKey "$dev"
+    done <<< "$luks_devices"
+}
+
 main() {
     install_prerequisites
     install_docker
@@ -144,6 +170,7 @@ main() {
     set_nopasswd_sudo
     setup_tailscale
     set_groups
+    change_passwords
 
     echo "Setup completed successfully!"
 }
