@@ -5,5 +5,5 @@ Repository to setup a new Ubuntu server machine
 To install the configuration run the following command:
 
 ```
-sh -c "$(curl -fsSL https://raw.githubusercontent.com/sourabh-pisal/setup-ubuntu-server/main/install.sh)"
+bash -c "$(curl -fsSL https://raw.githubusercontent.com/sourabh-pisal/setup-ubuntu-server/main/install.sh)"
 ```

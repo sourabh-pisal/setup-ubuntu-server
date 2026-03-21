@@ -153,12 +153,12 @@ change_passwords() {
     echo "Found LUKS devices:"
     echo "$luks_devices"
 
-    while IFS= read -r dev; do
+    while IFS= read -r dev <&3; do
         [ -z "$dev" ] && continue
         echo ""
         echo "Changing LUKS passphrase for: $dev"
         sudo cryptsetup luksChangeKey "$dev"
-    done <<< "$luks_devices"
+    done 3<<< "$luks_devices"
 }
 
 main() {
