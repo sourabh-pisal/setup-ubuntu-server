@@ -4,7 +4,27 @@ set -e
 install_prerequisites() {
     echo "Installing necessary packages"
     sudo apt-get update -y
-    sudo apt-get install -y docker.io docker-compose htop git tmux vim 
+    sudo apt-get install -y htop git tmux vim unzip rsync
+}
+
+install_docker() {
+    echo "Installing Docker"
+    sudo apt-get update -y
+    sudo apt-get install -y ca-certificates curl
+    sudo install -m 0755 -d /etc/apt/keyrings
+    sudo curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc
+    sudo chmod a+r /etc/apt/keyrings/docker.asc
+
+    sudo tee /etc/apt/sources.list.d/docker.sources <<EOF
+Types: deb
+URIs: https://download.docker.com/linux/ubuntu
+Suites: $(. /etc/os-release && echo "${UBUNTU_CODENAME:-$VERSION_CODENAME}")
+Components: stable
+Signed-By: /etc/apt/keyrings/docker.asc
+EOF
+
+    sudo apt-get update -y
+    sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
 }
 
 configure_github() {
@@ -40,9 +60,26 @@ setup_dotfiles() {
     /usr/bin/git --git-dir="$HOME/workspace/dotfiles" --work-tree="$HOME" config --local status.showUntrackedFiles no
 }
 
-setup_tailscale() {
-    curl -fsSL https://tailscale.com/install.sh | sh
-    sudo tailscale up
+install_aws_cli() {
+    echo "Installing AWS CLI"
+    local arch
+    arch="$(uname -m)"
+    local url
+    case "$arch" in
+        x86_64)  url="https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" ;;
+        aarch64) url="https://awscli.amazonaws.com/awscli-exe-linux-aarch64.zip" ;;
+        *) echo "Unsupported architecture: $arch"; return 1 ;;
+    esac
+
+    local tmp
+    tmp="$(mktemp -d)"
+    curl -fsSL "$url" -o "$tmp/awscliv2.zip"
+    unzip -q "$tmp/awscliv2.zip" -d "$tmp"
+    sudo "$tmp/aws/install"
+    rm -rf "$tmp"
+
+    aws --version
+    aws configure
 }
 
 set_nopasswd_sudo() {
@@ -57,6 +94,11 @@ set_nopasswd_sudo() {
     echo "$user ALL=(ALL) NOPASSWD:ALL" | sudo tee "$sudoers_file" > /dev/null
     sudo chmod 0440 "$sudoers_file"
     echo "NOPASSWD sudo configured for $user"
+}
+
+setup_tailscale() {
+    curl -fsSL https://tailscale.com/install.sh | sh
+    sudo tailscale up
 }
 
 set_groups() {
@@ -86,7 +128,6 @@ set_groups() {
     NEED_RELOGIN=0
 
     ensure_group docker
-
     ensure_user_in_group docker
 
     if [ "$NEED_RELOGIN" -eq 1 ]; then
@@ -96,8 +137,10 @@ set_groups() {
 
 main() {
     install_prerequisites
+    install_docker
     configure_github
     setup_dotfiles
+    install_aws_cli
     set_nopasswd_sudo
     setup_tailscale
     set_groups
