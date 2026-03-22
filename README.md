@@ -20,8 +20,14 @@ To install without Tailscale:
 bash <(curl -fsSL https://raw.githubusercontent.com/sourabh-pisal/setup-ubuntu-server/main/install.sh) --skip-tailscale
 ```
 
+To install without Docker:
+
+```
+bash <(curl -fsSL https://raw.githubusercontent.com/sourabh-pisal/setup-ubuntu-server/main/install.sh) --skip-docker
+```
+
 Flags can be combined:
 
 ```
-bash <(curl -fsSL https://raw.githubusercontent.com/sourabh-pisal/setup-ubuntu-server/main/install.sh) --skip-aws-cli --skip-tailscale
+bash <(curl -fsSL https://raw.githubusercontent.com/sourabh-pisal/setup-ubuntu-server/main/install.sh) --skip-aws-cli --skip-tailscale --skip-docker
 ```

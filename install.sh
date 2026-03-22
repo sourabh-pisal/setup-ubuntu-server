@@ -165,21 +165,27 @@ change_passwords() {
 main() {
     local skip_aws_cli=0
     local skip_tailscale=0
+    local skip_docker=0
 
     for arg in "$@"; do
         case "$arg" in
             --skip-aws-cli) skip_aws_cli=1 ;;
             --skip-tailscale) skip_tailscale=1 ;;
+            --skip-docker) skip_docker=1 ;;
             *) echo "Unknown flag: $arg"; exit 1 ;;
         esac
     done
 
     install_prerequisites
-    install_docker
+    if [ "$skip_docker" -eq 0 ]; then
+        install_docker
+    fi
     configure_github
     setup_dotfiles
     set_nopasswd_sudo
-    set_groups
+    if [ "$skip_docker" -eq 0 ]; then
+        set_groups
+    fi
     change_passwords
 
     if [ "$skip_aws_cli" -eq 0 ]; then
