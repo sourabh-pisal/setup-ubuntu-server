@@ -79,7 +79,7 @@ install_aws_cli() {
     rm -rf "$tmp"
 
     aws --version
-    aws configure
+    sudo aws configure
 }
 
 set_nopasswd_sudo() {
