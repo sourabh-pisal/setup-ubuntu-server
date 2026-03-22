@@ -53,6 +53,7 @@ configure_github() {
 
 setup_dotfiles() {
     mkdir -p "$HOME/workspace"
+    rm -rf "$HOME/workspace/dotfiles"
     cd "$HOME/workspace"
     git clone --bare git@github.com:sourabh-pisal/dotfiles.git "$HOME/workspace/dotfiles"
     alias dotfiles="/usr/bin/git --git-dir=$HOME/workspace/dotfiles --work-tree=$HOME"
@@ -162,17 +163,34 @@ change_passwords() {
 }
 
 main() {
+    local skip_aws_cli=0
+    local skip_tailscale=0
+
+    for arg in "$@"; do
+        case "$arg" in
+            --skip-aws-cli) skip_aws_cli=1 ;;
+            --skip-tailscale) skip_tailscale=1 ;;
+            *) echo "Unknown flag: $arg"; exit 1 ;;
+        esac
+    done
+
     install_prerequisites
     install_docker
     configure_github
     setup_dotfiles
-    install_aws_cli
     set_nopasswd_sudo
-    setup_tailscale
     set_groups
     change_passwords
+
+    if [ "$skip_aws_cli" -eq 0 ]; then
+        install_aws_cli
+    fi
+
+    if [ "$skip_tailscale" -eq 0 ]; then
+        setup_tailscale
+    fi
 
     echo "Setup completed successfully!"
 }
 
-main
+main "$@"
