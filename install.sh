@@ -182,11 +182,15 @@ main() {
     fi
     configure_github
     setup_dotfiles
-    set_nopasswd_sudo
+
+    if [ "$(id -u)" -ne 0 ]; then
+        set_nopasswd_sudo
+        change_passwords
+    fi
+
     if [ "$skip_docker" -eq 0 ]; then
         set_groups
     fi
-    change_passwords
 
     if [ "$skip_aws_cli" -eq 0 ]; then
         install_aws_cli
