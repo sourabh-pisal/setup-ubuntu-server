@@ -4,7 +4,7 @@ set -e
 install_prerequisites() {
     echo "Installing necessary packages"
     sudo apt-get update -y
-    sudo apt-get install -y htop git tmux vim unzip rsync
+    sudo apt-get install -y bash-completion htop git tmux vim unzip rsync
 }
 
 install_docker() {
